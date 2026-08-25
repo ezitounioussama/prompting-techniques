@@ -1,0 +1,136 @@
+
+================================================================================
+SETUP
+================================================================================
+  Model       : llama3.2:3b (local, via Ollama)
+  Temperature : 0.0  (so a rerun gives the same answers)
+  Test set    : 16 emails, 4 ambiguous
+
+================================================================================
+PART 1 — THE TWO PROMPTS FROM THE EXERCISE
+================================================================================
+
+ZERO-SHOT
+--------------------------------------------------------------------------------
+  PROMPT SENT:
+    Classify the following email as Work, Personal, or Spam:
+    
+    "Don't forget the team meeting at 2 PM. Please bring your project updates."
+
+  RAW MODEL REPLY : 'I would classify this email as Work. The content of the email is related to a work meeting and a specific task (project updates), which suggests that it is a professional communication from a colleague or supervisor.'
+  PARSED LABEL    : Work
+  EXPECTED        : Work
+  RESULT          : PASS
+  Reply was already just a label: no
+
+FEW-SHOT
+--------------------------------------------------------------------------------
+  PROMPT SENT:
+    Classify each email into one of the following categories: Work, Personal, or Spam.
+    
+    Email: "Dinner at 8 tonight? I'll bring the wine."
+    Category: Personal
+    
+    Email: "You have won a free iPhone! Click here to claim your prize."
+    Category: Spam
+    
+    Email: "The Q2 financial report is due by end of day tomorrow."
+    Category: Work
+    
+    Email: "Are you free for lunch this weekend?"
+    Category:
+
+  RAW MODEL REPLY : 'Personal'
+  PARSED LABEL    : Personal
+  EXPECTED        : Personal
+  RESULT          : PASS
+  Reply was already just a label: yes
+
+================================================================================
+PART 2 — THE SAME 16 EMAILS THROUGH BOTH TECHNIQUES
+================================================================================
+
+Per-email results
+--------------------------------------------------------------------------------
+      expected  zero-shot   few-shot    email
+       Work      Work    ok  Work    ok  Don't forget the team meeting at 2 PM. Pleas...
+       Work      Work    ok  Work    ok  Please review the attached contract before F...
+       Work      Work    ok  Work    ok  Reminder: submit your timesheet before the p...
+       Work      Work    ok  Work    ok  The deployment is scheduled for 6 PM. Standb...
+       Personal  Work    MISS Personalok  Are you free for lunch this weekend?
+       Personal  Personalok  Personalok  Mum's birthday is on Sunday, are you bringin...
+       Personal  Work    MISS Personalok  That film was terrible. Never letting you pi...
+       Personal  Work    MISS Personalok  Landed safely, the flat is lovely. Photos wh...
+       Spam      PersonalMISS Spam    ok  You have won a free iPhone! Click here to cl...
+       Spam      Spam    ok  Spam    ok  URGENT: your account will be suspended. Veri...
+       Spam      Spam    ok  Spam    ok  Hot singles in your area are waiting. Unsubs...
+       Spam      PersonalMISS Spam    ok  Make $5000 a week from home. No experience n...
+  HARD Personal  Personalok  Personalok  Can you cover my shift Saturday? I'll owe yo...
+  HARD Work      Work    ok  Work    ok  Congratulations! You've been selected to pre...
+  HARD Work      PersonalMISS PersonalMISS Hey! Long time. Quick one - can you send ove...
+  HARD Spam      Spam    ok  Spam    ok  Your package could not be delivered. Pay the...
+
+Accuracy
+--------------------------------------------------------------------------------
+  zero-shot  overall  62.5%  (10/16)    clear  58.3%   ambiguous  75.0%
+  few-shot   overall  93.8%  (15/16)    clear 100.0%   ambiguous  75.0%
+
+Output format — how often the reply was already just a label
+--------------------------------------------------------------------------------
+  zero-shot  0/16 replies needed no parsing
+  few-shot   16/16 replies needed no parsing
+
+Examples of what each technique actually returned
+--------------------------------------------------------------------------------
+
+  Email: Don't forget the team meeting at 2 PM. Please bring your project updat
+  Expected: Work
+    zero-shot  -> 'I would classify this email as Work. The content of the email is related to a work meeting and a specific task (project updates), which suggests that it is a professional communication from a colleague or supervisor.'
+    few-shot   -> 'Work'
+
+  Email: Can you cover my shift Saturday? I'll owe you a coffee.
+  Expected: Personal   (ambiguous case)
+    zero-shot  -> 'I would classify this email as Personal. The tone is informal and friendly, suggesting a personal relationship between the sender and the recipient. The mention of owing a coffee also implies a casual, social connection.'
+    few-shot   -> 'Personal'
+
+================================================================================
+CONCLUSIONS FROM THE MEASURED RUN
+================================================================================
+
+  1. Few-shot was more accurate overall: 93.8% against 62.5%.
+
+  2. The gap is on the CLEAR emails, not the ambiguous ones — the opposite of
+     what the exercise notes predict.
+       clear     : zero-shot 58.3%  vs few-shot 100.0%   (gap +41.7)
+       ambiguous : zero-shot 75.0%  vs few-shot 75.0%   (gap +0.0)
+     Zero-shot did not fail because the emails were hard. It failed because it
+     answered in prose and drifted while explaining itself — it called a free
+     iPhone giveaway "Personal" and a holiday message "Work". A 3B model has the
+     knowledge; what it lacks is a fixed target to answer into.
+
+  3. On the ambiguous emails the two techniques tied at 75.0%.
+     Examples fix the format, not the judgement. Where the wording points one
+     way and the intent another, both techniques made the same call — and both
+     missed the same email: "Hey! Long time. Quick one - can you send over the
+     invoice for last month?" Both said Personal; the gold label says Work.
+     That one is genuinely arguable, which is the real lesson about edge cases:
+     if a human labeller has to think, examples alone will not settle it. That
+     needs a clearer definition of the labels, or chain-of-thought.
+
+  4. Format was the most reliable win, and it was total.
+       replies needing no parsing: zero-shot 0/16, few-shot 16/16
+     Zero-shot always answered in a sentence ("I would classify this email as
+     Work. The content ..."), so every reply needed regex parsing. Few-shot
+     returned the bare label every time. The few-shot prompt never says "answer
+     in one word" — the three examples make the shape obvious. That is what makes
+     it safe to consume from code.
+
+  5. A few-shot prompt is a completion, not a chat turn.
+     Sent through the normal chat path, llama3.2:3b answered "Here are the
+     classifications:" and began re-listing the worked examples, never reaching
+     the real email. The same prompt with Ollama's raw mode plus a stop sequence
+     returned "Personal". The technique was fine; the delivery was wrong.
+
+================================================================================
+Done.
+================================================================================
