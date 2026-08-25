@@ -186,3 +186,19 @@ section is now generated from the numbers, so the prose cannot drift from the re
 ---
 
 Author: **Oussama Ezitouni**
+
+---
+
+## When to use which
+
+| | Zero-shot | Few-shot |
+|---|---|---|
+| Prompt cost | Cheapest — no examples | Larger, examples in every call |
+| Setup | Nothing to prepare | Need labelled examples |
+| Output format | Prose, needs parsing | Follows the example format |
+| Custom or fuzzy labels | Weak — the model guesses your meaning | Strong — examples define the labels |
+| Genuinely ambiguous input | Unreliable | Also unreliable |
+| Best for | One-off questions, exploring, no labelled data | Anything consumed by code, or domain-specific labels |
+
+Examples should be short, one per label so no class is over-represented, and diverse enough to
+show the boundaries rather than three variations of the same email.
