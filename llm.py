@@ -17,16 +17,19 @@ def ask(prompt: str, temperature: float = 0.0, max_tokens: int = 60, stop=None,
     """Send one prompt, return the raw reply.
 
     `stop` is a list of strings that halt generation. It matters for few-shot
-    prompts: given a prompt that ends "Category:", llama3.2:3b will happily keep
+    prompts: given a prompt that ends "Category:", a model will happily keep
     going and re-list all the worked examples, so the answer to the real email
     gets buried. Stopping at the next "Email:" or blank line keeps the completion
     to the one label that was asked for.
 
     `raw=True` bypasses the model's chat template and sends the prompt through as
     plain text to be continued. This is what a few-shot prompt needs. Without it
-    llama3.2:3b treats the prompt as a chat turn and replies conversationally —
-    measured here as "Here are the classifications:" followed by a re-listing of
-    the worked examples, with the actual answer never reached.
+    llama3.2:3b treated the prompt as a chat turn and replied conversationally --
+    measured as "Here are the classifications:" followed by a re-listing of the
+    worked examples, with the actual answer never reached. qwen3:8b does not
+    derail that way; through the chat path it answers "Category: Personal", which
+    parses but is not the bare label. Raw mode returns "Personal" on both, so it
+    stays.
 
     With raw=True the same prompt returns " Personal": the model continues the
     pattern instead of talking about it. Zero-shot is an instruction, so it is

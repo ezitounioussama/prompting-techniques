@@ -6,7 +6,7 @@ Zero-shot versus few-shot prompting, measured on a local model.
 Runs the two prompts from the exercise, then the same 16 emails through both
 techniques so the difference is a number rather than an impression.
 
-Model: llama3.2:3b via Ollama. temperature=0, so reruns match.
+Model: qwen3:8b via Ollama, thinking disabled. temperature=0, so reruns match.
 """
 
 import re
@@ -226,11 +226,15 @@ def print_conclusions(results):
      in one word" — the three examples make the shape obvious. That is what makes
      it safe to consume from code.
 
-  5. A few-shot prompt is a completion, not a chat turn.
+  5. A few-shot prompt is a completion, not a chat turn — on a small model.
      Sent through the normal chat path, llama3.2:3b answered "Here are the
      classifications:" and began re-listing the worked examples, never reaching
      the real email. The same prompt with Ollama's raw mode plus a stop sequence
      returned "Personal". The technique was fine; the delivery was wrong.
+     Re-checked on qwen3:8b: the chat path no longer derails, returning
+     "Category: Personal" — parseable, but still one strip away from a bare
+     label. Raw mode returns "Personal" on both models, so the pipeline keeps
+     it: it is the only delivery that needed no cleanup on either.
 """)
 
 

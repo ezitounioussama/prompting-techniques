@@ -142,10 +142,10 @@ label = ask(prompt)          # few-shot: "Work"
 label = parse(ask(prompt))   # zero-shot: "I would classify this email as Work. The content..."
 ```
 
-### 5. A few-shot prompt is a completion, not a chat turn
+### 5. A few-shot prompt is a completion, not a chat turn — on a small model
 
-Found while building this, and the biggest practical gotcha. Sent through the normal chat path,
-The model replied:
+Found while building this on `llama3.2:3b`, and the biggest practical gotcha. Sent through the
+normal chat path, that model replied:
 
 ```
 Here are the classifications:
@@ -166,6 +166,12 @@ It re-listed the worked examples and never reached the real email. Two fixes wer
 
 Same prompt, same model, same temperature — the output went from a wall of re-listed examples to
 `Personal`. The technique was never wrong; the delivery was.
+
+**Re-checked on `qwen3:8b`.** The chat path no longer derails: it answers `Category: Personal`.
+Parseable, and one strip away from a bare label. Raw mode returns `Personal` on both models, so
+the pipeline keeps raw mode — it is the only delivery that needed no cleanup on either. Worth
+noting which part of this was model-specific: the *severity* was, the *mechanism* was not. A
+few-shot prompt is still a completion; a stronger model is just better at guessing you meant one.
 
 ---
 
