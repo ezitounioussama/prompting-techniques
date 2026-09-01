@@ -5,7 +5,7 @@ import urllib.error
 import urllib.request
 
 BASE_URL = "http://127.0.0.1:11434"
-MODEL = "llama3.2:3b"
+MODEL = "qwen3:8b"
 
 
 class OllamaError(RuntimeError):
@@ -38,6 +38,10 @@ def ask(prompt: str, temperature: float = 0.0, max_tokens: int = 60, stop=None,
     """
     payload = {
         "model": MODEL,
+        # qwen3 reasons by default and then returns an EMPTY "response", with the
+        # chain of thought in a separate field. Every caller here parses the
+        # answer, so thinking is off.
+        "think": False,
         "prompt": prompt,
         "stream": False,
         "options": {"temperature": temperature, "num_predict": max_tokens},

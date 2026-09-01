@@ -1,6 +1,6 @@
 # Results — Zero-Shot vs Few-Shot Prompting
 
-Captured from a real run. Model `llama3.2:3b` on local Ollama, `temperature=0` so a rerun
+Captured from a real run. Model `qwen3:8b` on local Ollama (thinking disabled), `temperature=0` so a rerun
 reproduces these numbers. Raw log: [`docs/output.txt`](docs/output.txt).
 
 ```bash
@@ -90,21 +90,21 @@ Personal
 
 | Technique | Overall | Clear (12) | Ambiguous (4) |
 |---|---|---|---|
-| Zero-shot | **62.5%** (10/16) | 58.3% | 75.0% |
+| Zero-shot | **68.8%** (11/16) | 66.7% | 75.0% |
 | Few-shot | **93.8%** (15/16) | **100.0%** | 75.0% |
 
 ### Output format
 
 | Technique | Replies that were already just a label |
 |---|---|
-| Zero-shot | **0 / 16** |
+| Zero-shot | **1 / 16** |
 | Few-shot | **16 / 16** |
 
 ---
 
 ## What the numbers actually say
 
-### 1. Few-shot won overall — 93.8% against 62.5%
+### 1. Few-shot won overall — 93.8% against 68.8%
 
 ### 2. The gap is on the CLEAR emails, not the ambiguous ones
 
@@ -112,7 +112,7 @@ This is the opposite of what the exercise notes predict.
 
 | | zero-shot | few-shot | gap |
 |---|---|---|---|
-| Clear | 58.3% | 100.0% | **+41.7** |
+| Clear | 66.7% | 100.0% | **+33.3** |
 | Ambiguous | 75.0% | 75.0% | **0.0** |
 
 Zero-shot did not fail because the emails were hard. It failed on easy ones while explaining
@@ -145,7 +145,7 @@ label = parse(ask(prompt))   # zero-shot: "I would classify this email as Work. 
 ### 5. A few-shot prompt is a completion, not a chat turn
 
 Found while building this, and the biggest practical gotcha. Sent through the normal chat path,
-llama3.2:3b replied:
+The model replied:
 
 ```
 Here are the classifications:
@@ -180,7 +180,7 @@ reply. When the model echoed the worked examples, the first label it printed was
 
 **2. The written conclusions contradicted the measurement.** A first draft asserted "both
 techniques handle clear emails well" and "the gap shows up on ambiguous emails". The run then
-measured 58.3% vs 100.0% on clear emails and a dead tie on the ambiguous ones. The conclusion
+measured 66.7% vs 100.0% on clear emails and a dead tie on the ambiguous ones. The conclusion
 section is now generated from the numbers, so the prose cannot drift from the result.
 
 ---
